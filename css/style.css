@@ -1,0 +1,157 @@
+/* Sky Tycoon — mobile-first tycoon UI. Touch targets >=44px, safe-area, bottom nav. */
+:root{
+  --bg:#0b1e3b; --bg2:#10294f; --card:#162f5b; --card2:#1c3a6e;
+  --ink:#f4f7ff; --muted:#9db1d4; --accent:#ffb020; --accent2:#37d67a;
+  --danger:#ff5d5d; --info:#4cc3ff; --radius:18px;
+  --sat: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+  --livery:#4cc3ff;
+}
+*{box-sizing:border-box; -webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{
+  margin:0; font-family: "Nunito", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  background: radial-gradient(1200px 600px at 20% -10%, #24457e 0%, var(--bg) 55%) fixed, var(--bg);
+  color:var(--ink);
+  overscroll-behavior-y:none;
+}
+body.livery-sunset{--livery:#ff8c42} body.livery-ocean{--livery:#4cc3ff}
+body.livery-mint{--livery:#3ddc97} body.livery-grape{--livery:#b388ff}
+
+.screen{display:none; min-height:100dvh}
+.screen.active{display:block}
+.glass{background:linear-gradient(180deg, rgba(255,255,255,.09), rgba(255,255,255,.03)); backdrop-filter:blur(14px); border:1px solid rgba(255,255,255,.14)}
+.hidden{display:none !important}
+.muted{color:var(--muted)} .tiny{font-size:12px} .small{font-size:13px}
+.row{display:flex; align-items:center} .gap{gap:8px} .between{justify-content:space-between} .end{justify-content:flex-end} .wrap{flex-wrap:wrap}
+.grid-2{display:grid; grid-template-columns:1fr 1fr; gap:10px}
+.grid-2col{display:grid; grid-template-columns:1.1fr .9fr; gap:14px}
+@media(max-width:900px){.grid-2col{grid-template-columns:1fr}}
+
+/* Splash */
+#screen-splash{display:none; place-items:center; padding:24px}
+#screen-splash.active{display:grid}
+.splash-bg{position:fixed; inset:0; background:
+  radial-gradient(600px 300px at 80% 10%, #ffb02033, transparent),
+  repeating-linear-gradient(0deg, transparent 0 46px, #ffffff08 46px 47px),
+  linear-gradient(#0b1e3b,#132c5c); z-index:-1}
+.splash-card{max-width:560px; width:100%; border-radius:24px; padding:22px; box-shadow:0 20px 60px #0008}
+.logo-row{display:flex; gap:12px; align-items:center}
+.logo-plane{font-size:46px; background:var(--livery); width:64px; height:64px; display:grid; place-items:center; border-radius:18px; transform:rotate(-8deg)}
+h1{margin:0; letter-spacing:2px} .subtitle{margin:0; color:var(--livery); font-weight:800; letter-spacing:4px; text-transform:uppercase; font-size:12px}
+.crew-row{display:flex; gap:8px; margin:14px 0}
+.speech-bubble{background:#fff; color:#10294f; border-radius:14px; padding:10px 12px; position:relative; margin-bottom:14px; font-size:14px}
+.speech-bubble:after{content:""; position:absolute; top:-8px; left:40px; border:10px solid transparent; border-bottom-color:#fff; border-top:0}
+.field{display:flex; flex-direction:column; gap:6px; margin:8px 0; font-size:13px}
+.field span{color:var(--muted); font-weight:700; text-transform:uppercase; font-size:11px; letter-spacing:.5px}
+input,select{background:#0d2246; border:1px solid #ffffff2a; color:var(--ink); border-radius:12px; padding:12px; font-size:16px; min-height:48px; width:100%}
+
+/* Buttons — 48px touch targets for mobile conversion */
+.btn{border:0; border-radius:14px; padding:12px 16px; min-height:48px; font-weight:800; font-size:15px; cursor:pointer;
+  background:#243f71; color:var(--ink); border:1px solid #ffffff22; touch-action:manipulation}
+.btn:active{transform:scale(.97)}
+.btn.primary{background:linear-gradient(180deg, var(--accent), #f08c00); color:#231600; border:0}
+.btn.big{width:100%; margin-top:10px; font-size:17px}
+.btn.ghost{background:transparent}
+.btn.small{min-height:40px; padding:8px 12px; font-size:13px}
+.btn.danger{background:linear-gradient(180deg,#ff7b7b,#e33)}
+.btn.icon-only{font-size:20px; padding:8px 12px}
+
+/* Topbar */
+#topbar{position:sticky; top:0; z-index:20; display:flex; align-items:center; gap:12px; padding:10px 14px;
+  padding-top:calc(10px + env(safe-area-inset-top));
+  background:rgba(11,30,59,.92); backdrop-filter:blur(10px); border-bottom:1px solid #ffffff18}
+.topbar-left{display:flex; gap:10px; align-items:center; min-width:0}
+#airline-badge{width:44px; height:44px; border-radius:12px; background:var(--livery); display:grid; place-items:center; font-weight:900; color:#0b1e3b}
+#airline-name{font-weight:900; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:22vw}
+.topbar-stats{display:flex; gap:10px; margin-left:auto}
+.stat{background:#ffffff10; border:1px solid #ffffff18; padding:6px 10px; border-radius:12px; display:flex; flex-direction:column; min-width:86px}
+.stat .label{font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:.5px}
+.stat span:last-child{font-weight:900}
+.stat.cash span:last-child{color:var(--accent)}
+.topbar-actions{display:flex; gap:8px}
+@media(max-width:720px){ .hide-sm{display:none} #airline-name{max-width:28vw} .stat{min-width:70px} #btn-next-week{display:none} }
+
+/* Layout */
+#layout{display:grid; grid-template-columns:96px 1fr; min-height:calc(100dvh - 68px)}
+#sidenav{background:#0d2246cc; border-right:1px solid #ffffff14; display:flex; flex-direction:column; gap:6px; padding:10px 8px; position:sticky; top:68px; height:calc(100dvh - 68px)}
+.nav-btn{display:flex; flex-direction:column; align-items:center; gap:2px; padding:10px 4px; border-radius:14px; border:1px solid transparent; background:transparent; color:var(--ink); font-size:20px; min-height:64px; cursor:pointer}
+.nav-btn span{font-size:11px; font-weight:800}
+.nav-btn.active{background:#ffffff16; border-color:#ffffff22}
+#content{padding:16px; max-width:1200px; width:100%; margin:0 auto; padding-bottom:110px}
+#bottomnav{display:none}
+@media(max-width:820px){
+  #layout{grid-template-columns:1fr}
+  #sidenav{display:none}
+  #bottomnav{display:flex; position:fixed; bottom:0; left:0; right:0; z-index:30;
+    background:#0d2246f2; border-top:1px solid #ffffff22; padding:6px 4px calc(6px + env(safe-area-inset-bottom));
+    overflow-x:auto; gap:2px}
+  #bottomnav .nav-btn{flex:1; min-width:64px}
+}
+
+/* Tabs — this was missing, so nav clicks appeared to do nothing */
+.tab{display:none}
+.tab.active{display:block; animation:tabIn .2s ease}
+@keyframes tabIn{from{opacity:0; transform:translateY(6px)}}
+
+/* Cards */
+.card{background:linear-gradient(180deg, var(--card), var(--bg2)); border:1px solid #ffffff1c; border-radius:var(--radius); padding:16px; margin-bottom:14px; box-shadow:0 8px 24px #0005}
+.card h3{margin:0 0 10px} .card h4{margin:14px 0 8px}
+.cards-grid{display:grid; grid-template-columns:repeat(auto-fill, minmax(280px,1fr)); gap:12px}
+.plane-card,.base-card{background:#ffffff0d; border:1px solid #ffffff1e; border-radius:16px; padding:12px}
+.plane-card h4,.base-card h4{margin:0 0 6px}
+.kpi-row{display:grid; grid-template-columns:repeat(auto-fit,minmax(120px,1fr)); gap:8px; margin:10px 0}
+.kpi{background:#ffffff0c; border-radius:12px; padding:10px; text-align:center}
+.kpi b{display:block; font-size:18px}
+.grid-dashboard{display:grid; grid-template-columns:1.1fr .9fr; gap:14px}
+@media(max-width:900px){.grid-dashboard{grid-template-columns:1fr}}
+
+/* Anime / comic cast */
+.mascot{width:132px; min-width:132px}
+.mascot svg{width:100%; height:auto; filter:drop-shadow(0 8px 10px #0008)}
+.mascot-flex{display:flex; gap:12px; align-items:flex-start}
+.mascot.small{width:84px; min-width:84px}
+.crew-row{display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin:14px 0}
+.crew-card{background:#ffffff0c; border:2px solid #ffffff22; border-radius:16px; padding:8px 6px; text-align:center; position:relative; overflow:hidden}
+.crew-card:before{content:""; position:absolute; inset:0; background:radial-gradient(circle at 50% 20%, #ffffff22, transparent 60%); pointer-events:none}
+.crew-card b{display:block; font-size:12px; margin-top:2px}
+.crew-card span{font-size:11px; color:var(--muted)}
+.crew-card .mascot{width:100%; min-width:0}
+.sidekick{display:flex; gap:10px; align-items:center; background:linear-gradient(90deg,#ffffff12,#ffffff05); border:1px solid #ffffff22; border-left:5px solid var(--accent); border-radius:12px; padding:8px 10px; margin:0 0 12px}
+.sidekick .mascot{width:64px; min-width:64px}
+.sidekick p{margin:0; font-size:13px}
+.comic-name{display:inline-block; background:var(--accent); color:#231600; font-weight:900; font-size:11px; padding:2px 8px; border-radius:6px; transform:rotate(-2deg); letter-spacing:.5px; text-transform:uppercase}
+#quest-box{margin-top:8px; display:flex; flex-direction:column; gap:6px}
+.quest{background:#ffb02022; border:1px dashed #ffb02088; padding:8px 10px; border-radius:12px; font-size:13px}
+.quest.done{opacity:.6; text-decoration:line-through}
+.log{margin-top:10px; max-height:180px; overflow:auto; background:#00000040; border-radius:12px; padding:8px; font-size:13px; display:flex; flex-direction:column; gap:4px}
+.strip{display:flex; gap:10px; overflow-x:auto; padding:4px 2px 12px}
+
+/* Map — real Leaflet world map (OurAirports-style) + offline schematic fallback */
+#leaflet-map{height:min(62vh,480px); min-height:320px; border-radius:14px; overflow:hidden; border:1px solid #ffffff22; z-index:1}
+#leaflet-map.hidden{display:none}
+.leaflet-container{font-family:inherit; background:#0e2a55}
+.leaflet-popup-content{font-weight:700; line-height:1.5}
+.leaflet-popup-content button{margin-top:6px; width:100%; padding:10px; border-radius:10px; border:0; background:#ffb020; font-weight:900; cursor:pointer; min-height:44px}
+#worldmap-wrap{position:relative; background:linear-gradient(180deg,#12315f,#0b1e3b); border-radius:14px; overflow:hidden; border:1px solid #ffffff22}
+#worldmap-wrap.hidden{display:none}
+#worldmap{width:100%; height:auto; display:block}
+#map-tooltip{position:absolute; pointer-events:none; background:#fff; color:#0b1e3b; padding:8px 10px; border-radius:10px; font-size:13px; box-shadow:0 8px 20px #0008; z-index:5}
+.preview-box{background:#00000045; border:1px solid #ffffff22; border-radius:12px; padding:10px; margin:10px 0; font-size:14px}
+.dot{width:10px; height:10px; border-radius:50%; display:inline-block; margin:0 4px 0 10px}
+.dot.hub{background:var(--accent)} .dot.base{background:var(--accent2)} .dot.plain{background:var(--info)}
+
+/* Modal/toast */
+#modal-backdrop{position:fixed; inset:0; background:#000a; display:grid; place-items:center; z-index:50; padding:16px}
+#modal{border-radius:20px; padding:18px; max-width:560px; width:100%; background:#162f5b; max-height:88dvh; overflow:auto}
+#toast-wrap{position:fixed; bottom:calc(90px + env(safe-area-inset-bottom)); left:50%; transform:translateX(-50%); display:flex; flex-direction:column; gap:8px; z-index:60; width:min(92vw,420px)}
+.toast{background:#fff; color:#0b1e3b; padding:12px 14px; border-radius:14px; font-weight:700; box-shadow:0 10px 30px #000a; animation:pop .25s}
+@keyframes pop{from{transform:translateY(10px) scale(.96); opacity:0}}
+.pill{display:inline-block; padding:3px 8px; border-radius:20px; background:#ffffff1a; font-size:12px; font-weight:800}
+.bar{height:8px; background:#ffffff20; border-radius:6px; overflow:hidden} .bar i{display:block; height:100%; background:var(--accent2)}
+table.ledger{width:100%; border-collapse:collapse; font-size:13px}
+table.ledger td,table.ledger th{padding:6px; border-bottom:1px solid #ffffff18; text-align:right}
+table.ledger td:first-child,table.ledger th:first-child{text-align:left}
+.seat-sliders input[type=range]{width:100%; accent-color:var(--accent)}
+.amen-grid{display:grid; grid-template-columns:1fr 1fr; gap:6px}
+.amen{background:#ffffff0d; border:1px solid #ffffff22; border-radius:10px; padding:8px; font-size:13px; cursor:pointer; min-height:48px}
+.amen.on{background:#37d67a33; border-color:var(--accent2)}

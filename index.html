@@ -1,0 +1,292 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <!-- Mobile-ready: viewport-fit=cover + safe-area + no pinch zoom issues -->
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
+  <meta name="theme-color" content="#0b1e3b" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <title>Sky Tycoon — Airline Manager</title>
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="icon" href="assets/icon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="css/style.css" />
+  <!-- Real world map tiles (same concept as OurAirports Big Map). Loads from CDN; game falls back to offline schematic if unavailable. -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+</head>
+<body>
+  <div id="app">
+    <!-- Splash / New game -->
+    <section id="screen-splash" class="screen active">
+      <div class="splash-bg"></div>
+      <div class="splash-card glass">
+        <div class="logo-row">
+          <div class="logo-plane">✈️</div>
+          <div>
+            <h1>SKY TYCOON</h1>
+            <p class="subtitle">Airline Manager</p>
+          </div>
+        </div>
+
+        <div class="crew-row" id="splash-crew"></div>
+
+        <div class="speech-bubble" id="splash-tip">
+          <strong>Akari:</strong> <span id="splash-tip-text">Welcome aboard, boss! Build your airline from one puddle-jumper to a global empire!</span>
+        </div>
+
+        <label class="field">
+          <span>Airline name</span>
+          <input id="input-airline" maxlength="24" value="Pixel Air" />
+        </label>
+        <div class="grid-2">
+          <label class="field">
+            <span>Home hub</span>
+            <select id="input-hub"></select>
+          </label>
+          <label class="field">
+            <span>Difficulty</span>
+            <select id="input-difficulty">
+              <option value="easy">Easy — $20M</option>
+              <option value="normal" selected>Normal — $12M</option>
+              <option value="hard">Hard — $7M</option>
+            </select>
+          </label>
+        </div>
+        <div class="grid-2">
+          <label class="field">
+            <span>Livery</span>
+            <select id="input-livery">
+              <option value="sunset">Sunset Orange</option>
+              <option value="ocean">Ocean Blue</option>
+              <option value="mint">Mint Fresh</option>
+              <option value="grape">Grape Pop</option>
+            </select>
+          </label>
+          <label class="field">
+            <span>Advisor CEO</span>
+            <select id="input-mascot">
+              <option value="penny">Akari — Sky Captain</option>
+              <option value="gus">Guts — Chief Engineer</option>
+              <option value="mia">Mira — CFO Strategist</option>
+              <option value="leo">Ren — Star Attendant</option>
+            </select>
+          </label>
+        </div>
+        <button id="btn-start" class="btn primary big">🛫 Found Airline</button>
+        <button id="btn-continue" class="btn ghost hidden">Continue saved game</button>
+        <p class="tiny muted">Tycoon-style idle/manager • Tap-friendly • Works offline • Mobile-ready PWA</p>
+      </div>
+    </section>
+
+    <!-- Main game -->
+    <section id="screen-game" class="screen">
+      <header id="topbar">
+        <div class="topbar-left">
+          <div id="airline-badge">PA</div>
+          <div>
+            <div id="airline-name">Pixel Air</div>
+            <div id="date-line" class="muted tiny">Day 1 • Hub: JFK</div>
+          </div>
+        </div>
+        <div class="topbar-stats">
+          <div class="stat cash"><span class="label">Cash</span><span id="stat-cash">$12.0M</span></div>
+          <div class="stat"><span class="label">⭐ Rep</span><span id="stat-rep">50</span></div>
+          <div class="stat hide-sm"><span class="label">😊 Sat</span><span id="stat-sat">70%</span></div>
+          <div class="stat hide-sm"><span class="label">✈️ Fleet</span><span id="stat-fleet">0</span></div>
+        </div>
+        <div class="topbar-actions">
+          <button id="btn-next-day" class="btn primary">+1 Day ▶</button>
+          <button id="btn-next-week" class="btn">+7 ⏩</button>
+          <button id="btn-menu" class="btn icon-only">☰</button>
+        </div>
+      </header>
+
+      <div id="layout">
+        <nav id="sidenav">
+          <button data-tab="dashboard" class="nav-btn active">🏠<span>HQ</span></button>
+          <button data-tab="map" class="nav-btn">🗺️<span>Map</span></button>
+          <button data-tab="fleet" class="nav-btn">✈️<span>Fleet</span></button>
+          <button data-tab="shop" class="nav-btn">🛒<span>Buy</span></button>
+          <button data-tab="routes" class="nav-btn">🧭<span>Routes</span></button>
+          <button data-tab="airports" class="nav-btn">🏢<span>Bases</span></button>
+          <button data-tab="finance" class="nav-btn">📊<span>Money</span></button>
+        </nav>
+
+        <main id="content">
+          <!-- HQ Dashboard -->
+          <div id="tab-dashboard" class="tab active">
+            <div class="grid-dashboard">
+              <div class="card mascot-card">
+                <div class="mascot-flex">
+                  <div id="hq-mascot" class="mascot"></div>
+                  <div>
+                    <h2 id="hq-greeting">Welcome to HQ, boss!</h2>
+                    <p id="hq-advice" class="muted">Buy a plane, open a route, then press +1 Day to earn!</p>
+                    <div id="quest-box"></div>
+                  </div>
+                </div>
+                <div id="event-log" class="log"></div>
+              </div>
+              <div class="card">
+                <h3>📈 Today at a glance</h3>
+                <div id="kpi-row" class="kpi-row"></div>
+                <canvas id="profit-chart" width="600" height="220"></canvas>
+                <div class="row between">
+                  <span class="tiny muted">Daily profit history</span>
+                  <button id="btn-marketing" class="btn small">📣 Run Ads ($25k, +Rep)</button>
+                </div>
+              </div>
+            </div>
+            <div id="dashboard-fleet-strip" class="strip"></div>
+          </div>
+
+          <!-- Map -->
+          <div id="tab-map" class="tab">
+            <div class="sidekick" data-sidekick="leo"></div>
+            <div class="card">
+              <div class="row between wrap">
+                <h3>🗺️ World Map — <span id="map-count"></span> airports</h3>
+                <button id="btn-map-toggle" class="btn small">🛰️ Real / 📐 schematic</button>
+              </div>
+              <div class="row gap wrap" style="margin-bottom:8px">
+                <input id="map-search" placeholder="🔍 Search city, code or country…" style="flex:1;min-width:200px" />
+                <select id="map-filter" style="width:auto;min-height:48px">
+                  <option value="all">All airports</option>
+                  <option value="hubs">Demand 75+ only</option>
+                  <option value="bases">My bases only</option>
+                </select>
+              </div>
+              <div id="leaflet-map"></div>
+              <div id="worldmap-wrap">
+                <svg id="worldmap" viewBox="0 0 1000 500" preserveAspectRatio="xMidYMid meet"></svg>
+                <div id="map-tooltip" class="hidden"></div>
+              </div>
+              <p class="tiny muted">Airport positions & ICAO codes: <a href="https://ourairports.com/big-map.html" target="_blank" rel="noopener">OurAirports Big Map</a> dataset (public domain). Map tiles: © OpenStreetMap contributors.</p>
+              <div id="airport-detail"></div>
+            </div>
+          </div>
+
+          <!-- Fleet -->
+          <div id="tab-fleet" class="tab">
+            <div class="sidekick" data-sidekick="gus"></div>
+            <div class="card">
+              <div class="row between wrap">
+                <h3>✈️ Your Fleet</h3>
+                <div class="tiny muted">Tap a plane to manage seats, amenities & assignment</div>
+              </div>
+              <div id="fleet-list" class="cards-grid"></div>
+            </div>
+            <div id="plane-detail"></div>
+          </div>
+
+          <!-- Shop -->
+          <div id="tab-shop" class="tab">
+            <div class="sidekick" data-sidekick="gus-shop"></div>
+            <div class="card">
+              <h3>🛒 Aircraft Market</h3>
+              <div class="row wrap gap">
+                <select id="shop-filter">
+                  <option value="all">All sizes</option>
+                  <option value="Regional">Regional</option>
+                  <option value="Narrowbody">Narrowbody</option>
+                  <option value="Widebody">Widebody</option>
+                  <option value="Jumbo">Jumbo</option>
+                </select>
+                <select id="shop-sort">
+                  <option value="price">Sort: Price</option>
+                  <option value="capacity">Sort: Capacity</option>
+                  <option value="range">Sort: Range</option>
+                </select>
+              </div>
+              <div id="shop-list" class="cards-grid"></div>
+            </div>
+          </div>
+
+          <!-- Routes -->
+          <div id="tab-routes" class="tab">
+            <div class="sidekick" data-sidekick="penny"></div>
+            <div class="grid-2col">
+              <div class="card">
+                <h3>🧭 Open new route</h3>
+                <div class="grid-2">
+                  <label class="field"><span>From</span><select id="route-from"></select></label>
+                  <label class="field"><span>To</span><select id="route-to"></select></label>
+                </div>
+                <label class="field"><span>Airplane</span><select id="route-plane"></select></label>
+                <div id="route-preview" class="preview-box">Select airports to preview demand & profit.</div>
+                <div class="grid-2">
+                  <label class="field"><span>Ticket price $</span><input id="route-price" type="number" value="220" min="49" max="2500" /></label>
+                  <label class="field"><span>Flights / week</span><input id="route-freq" type="number" value="7" min="1" max="21" /></label>
+                </div>
+                <button id="btn-create-route" class="btn primary big">Open Route</button>
+                <p class="tiny muted">Tip: long routes need long-range planes + big runways. High prices lower load factor.</p>
+              </div>
+              <div class="card">
+                <h3>Active routes</h3>
+                <div id="routes-list"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Airports / Bases -->
+          <div id="tab-airports" class="tab">
+            <div class="sidekick" data-sidekick="mia-base"></div>
+            <div class="card">
+              <h3>🏢 Bases, Hangars & Runways</h3>
+              <p class="muted tiny">You can only base planes where you rent a hangar. Big planes need long runways — pay to extend them. Daily hangar rent applies.</p>
+              <div id="bases-list" class="cards-grid"></div>
+            </div>
+          </div>
+
+          <!-- Finance -->
+          <div id="tab-finance" class="tab">
+            <div class="sidekick" data-sidekick="mia"></div>
+            <div class="grid-2col">
+              <div class="card">
+                <h3>📊 Finances</h3>
+                <div id="finance-summary"></div>
+                <h4>Ledger (last 14 days)</h4>
+                <div id="ledger"></div>
+              </div>
+              <div class="card">
+                <h3>🏦 Bank</h3>
+                <p class="muted">Borrow to grow fast like a true tycoon — but interest bites daily.</p>
+                <div id="bank-box"></div>
+                <div class="row gap">
+                  <button id="btn-loan" class="btn">Borrow $5M (5%/day)</button>
+                  <button id="btn-repay" class="btn">Repay $1M</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </main>
+      </div>
+
+      <!-- Mobile bottom nav (mirrors sidenav via JS) -->
+      <nav id="bottomnav"></nav>
+    </section>
+
+    <!-- Modal -->
+    <div id="modal-backdrop" class="hidden">
+      <div id="modal" class="glass">
+        <div id="modal-mascot"></div>
+        <div id="modal-body"></div>
+        <div class="row end gap"><button id="modal-close" class="btn">Close</button></div>
+      </div>
+    </div>
+
+    <div id="toast-wrap"></div>
+  </div>
+
+  <script src="js/data.js"></script>
+  <script src="js/game.js"></script>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="js/ui.js"></script>
+  <script>
+    if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
+      navigator.serviceWorker.register("./sw.js").catch(() => {});
+    }
+  </script>
+</body>
+</html>

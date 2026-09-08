@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+<rect width="512" height="512" rx="110" fill="#0b1e3b"/>
+<circle cx="256" cy="250" r="170" fill="none" stroke="#ff5d5d" stroke-width="14" stroke-dasharray="28 20"/>
+<path d="M256 60 L292 110 L360 104 L314 142 L330 210 L256 182 L182 210 L198 142 L152 104 L220 110 Z" fill="#ff7a3d" stroke="#10152e" stroke-width="10" stroke-linejoin="round"/>
+<ellipse cx="256" cy="270" rx="105" ry="115" fill="#ffd9b8" stroke="#10152e" stroke-width="10"/>
+<path d="M150 240 Q160 150 256 142 Q352 150 362 240 Q320 190 256 194 Q192 190 150 240" fill="#2b1a12" stroke="#10152e" stroke-width="8"/>
+<path d="M140 110 L372 110 L358 52 L154 52 Z" fill="#1c2a52" stroke="#10152e" stroke-width="10" stroke-linejoin="round"/>
+<ellipse cx="212" cy="282" rx="30" ry="36" fill="#fff" stroke="#10152e" stroke-width="8"/>
+<ellipse cx="300" cy="282" rx="30" ry="36" fill="#fff" stroke="#10152e" stroke-width="8"/>
+<circle cx="216" cy="290" r="14" fill="#b34700"/><circle cx="296" cy="290" r="14" fill="#b34700"/>
+<path d="M214 340 Q256 368 298 340" stroke="#10152e" stroke-width="10" fill="none" stroke-linecap="round"/>
+<text x="256" y="470" text-anchor="middle" font-size="72">✈️</text>
+</svg>

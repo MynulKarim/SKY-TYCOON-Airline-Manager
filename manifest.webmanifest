@@ -1,0 +1,14 @@
+{
+  "name": "Sky Tycoon — Airline Manager",
+  "short_name": "Sky Tycoon",
+  "description": "Cartoon airline tycoon manager: buy planes, open routes, manage seats and bases.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#0b1e3b",
+  "theme_color": "#0b1e3b",
+  "icons": [
+    { "src": "assets/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ]
+}
