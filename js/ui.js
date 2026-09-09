@@ -91,10 +91,29 @@
   }
   function closeModal() { $("modal-backdrop").classList.add("hidden"); }
 
+  // Equirectangular-ish placement calibrated to the illustrated political map
+  // (assets/world-map.jpg). Tweak if you swap the artwork.
   function project(lat, lon) {
-    const x = ((lon + 180) / 360) * 1000;
-    const y = ((90 - lat) / 180) * 500;
-    return { x, y };
+    const x = (0.008 + (lon + 168) * 0.002757) * 1000;
+    const y = (0.478 - 0.00404 * lat) * 500;
+    return { x: Math.max(8, Math.min(992, x)), y: Math.max(14, Math.min(392, y)) };
+  }
+  // Illustrated map artwork: tries common extensions so the owner can drop in
+  // world-map.jpg / .png / .webp without touching code.
+  const STATIC_MAP_SOURCES = ["assets/world-map.jpg", "assets/world-map.jpeg", "assets/world-map.png", "assets/world-map.webp"];
+  let staticMapReady = false;
+  function ensureStaticMapImg() {
+    if (staticMapReady) return;
+    staticMapReady = true;
+    const img = $("static-map-img");
+    if (!img) return;
+    let i = 0;
+    img.onerror = () => {
+      i++;
+      if (i < STATIC_MAP_SOURCES.length) img.src = STATIC_MAP_SOURCES[i];
+      else { img.classList.add("hidden"); $("static-map-missing").classList.remove("hidden"); }
+    };
+    img.src = STATIC_MAP_SOURCES[0];
   }
 
   // ---------- init ----------
@@ -198,7 +217,7 @@
     if ($("map-filter")) $("map-filter").addEventListener("change", () => drawMap());
     if ($("btn-map-toggle")) $("btn-map-toggle").onclick = () => {
       mapMode = mapMode === "real" ? "schematic" : "real";
-      if (mapMode === "schematic") toast("📐 Offline schematic mode");
+      if (mapMode === "schematic") toast("🗺️ Illustrated map mode");
       drawMap();
     };
   }
@@ -300,7 +319,7 @@
     ctx.fillStyle = "#fff"; ctx.fillRect(0, 110, c.width, 2);
   }
 
-  // ----- world map: real Leaflet map (OurAirports Big-Map style) + offline schematic fallback -----
+  // ----- world map: real Leaflet map + illustrated fallback (political map artwork) -----
   let leafletMap = null, leafletLayers = null, mapMode = "real"; // "real" | "schematic"
   function mapFiltered() {
     const q = ($("map-search") && $("map-search").value || "").trim().toLowerCase();
@@ -365,36 +384,33 @@
     }
   }
   function drawSchematic() {
+    ensureStaticMapImg();
     const svg = $("worldmap");
-    // stylized continents: simple blobs so it works offline (no tiles needed — mobile friendly)
-    const land = `M60,180 Q120,120 220,150 Q300,170 320,230 Q260,300 150,290 Q70,260 60,180
-      M330,120 Q420,90 500,120 Q540,170 500,230 Q420,260 340,220 Q310,160 330,120
-      M540,140 Q640,110 740,150 Q800,220 730,300 Q620,330 550,260 Q520,190 540,140
-      M740,320 Q820,300 860,360 Q830,430 750,420 Q710,370 740,320
-      M150,320 Q230,310 250,380 Q200,450 130,420 Q110,360 150,320`;
-    let html = `<rect width="1000" height="500" fill="#0e2a55"/>
-      <path d="${land}" fill="#1e4d2e" stroke="#37d67a" stroke-width="3" opacity=".9"/>
-      <g font-size="22">🌊</g>`;
-    // routes
+    // No painted continents here — the illustrated political map image is the
+    // backdrop; this SVG only overlays routes + airport markers.
+    let html = `<rect width="1000" height="500" fill="transparent"/>`;
+    // routes (dark casing so gold lines read on the colorful map)
     for (const r of state.routes) {
       const a = project(S.airport(r.from).lat, S.airport(r.from).lon);
       const b = project(S.airport(r.to).lat, S.airport(r.to).lon);
-      html += `<line x1="${a.x}" y1="${a.y}" x2="${b.x}" y2="${b.y}" stroke="#ffb020" stroke-width="2.5" stroke-dasharray="8 6" opacity=".85"/>`;
+      html += `<line x1="${a.x}" y1="${a.y}" x2="${b.x}" y2="${b.y}" stroke="#0b1e3b" stroke-width="5" opacity=".7"/>`;
+      html += `<line x1="${a.x}" y1="${a.y}" x2="${b.x}" y2="${b.y}" stroke="#ffb020" stroke-width="2.5" stroke-dasharray="8 6"/>`;
     }
     for (const ap of mapFiltered()) {
       const p = project(ap.lat, ap.lon);
       const isHub = ap.code === state.hub, isBase = !!state.bases[ap.code];
       const color = isHub ? "#ffb020" : isBase ? "#37d67a" : "#4cc3ff";
-      const r = isHub ? 10 : 6;
+      const r = isHub ? 10 : 7;
       html += `<g class="ap" data-code="${ap.code}" style="cursor:pointer">
-        <circle cx="${p.x}" cy="${p.y}" r="${r + 5}" fill="${color}" opacity=".25"/>
-        <circle cx="${p.x}" cy="${p.y}" r="${r}" fill="${color}" stroke="#fff" stroke-width="2"/>
-        <text x="${p.x}" y="${p.y - r - 5}" text-anchor="middle" fill="#fff" font-size="11" font-weight="800">${ap.code}</text>
+        <circle cx="${p.x}" cy="${p.y}" r="${r + 4}" fill="${color}" opacity=".35"/>
+        <circle cx="${p.x}" cy="${p.y}" r="${r}" fill="${color}" stroke="#0b1e3b" stroke-width="3"/>
+        <circle cx="${p.x}" cy="${p.y}" r="${r}" fill="none" stroke="#fff" stroke-width="1"/>
+        <text x="${p.x}" y="${p.y - r - 5}" text-anchor="middle" fill="#fff" font-size="12" font-weight="900">${ap.code}</text>
       </g>`;
     }
     // hub plane emoji
     const hubP = project(S.airport(state.hub).lat, S.airport(state.hub).lon);
-    html += `<text x="${hubP.x + 16}" y="${hubP.y + 6}" font-size="24">✈️</text>`;
+    html += `<text x="${hubP.x + 16}" y="${hubP.y + 8}" font-size="26">✈️</text>`;
     svg.innerHTML = html;
     svg.querySelectorAll(".ap").forEach((g) => {
       g.addEventListener("click", () => selectAirport(g.dataset.code));

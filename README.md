@@ -3,7 +3,7 @@
 Cartoon airline tycoon in the style of Business Tycoon / Mafia City menus: chatty mascots, big buttons, quest guidance, and an empire-building loop.
 
 **Features**
-- 🌍 Real world map (Leaflet + OpenStreetMap, OurAirports Big-Map style) with 48 real airports — positions & ICAO codes from the OurAirports dataset, with search, demand filter, route lines, and an offline schematic fallback
+- 🌍 Real world map (Leaflet + OpenStreetMap, OurAirports Big-Map style) with 48 real airports — positions & ICAO codes from the OurAirports dataset, with search, demand filter, route lines, and an illustrated-map offline fallback
 - 🛬 48 airports (JFK, LAX, LHR, HND, DXB, SIN…) — demand, landing fees, runway levels, each linking to its real OurAirports page
 - 🛒 10 planes to buy & fly (ATR-72 → A380), each with price, capacity, range, fuel, upkeep, comfort
 - 💺 Seating management: Economy / Business / First sliders (space vs revenue tradeoff)
@@ -67,8 +67,9 @@ Then optionally: replace `localStorage` in `game.js` save/load with Preferences,
 **C. Cordova:** `cordova create skytycoon`, copy these files into `www/`, `cordova platform add android`, `cordova run android`.
 
 ## Credits & data sources
+- Illustrated world map (offline fallback): [Image by alicia_mb on Magnific](https://www.magnific.com/free-vector/world-map-countries-political-illustration_427643655.htm) — save the image as `assets/world-map.jpg` (`.png`/`.webp` also work) to enable it.
 - Airports (coordinates + ICAO idents): [OurAirports](https://ourairports.com/data/) — public domain. Full 85,000-airport `airports.csv` + `runways.csv` download there; this game bundles a curated 48-major-airport subset for playability. Big Map: https://ourairports.com/big-map.html
-- Map tiles: © [OpenStreetMap](https://www.openstreetmap.org/copyright) contributors (Leaflet). Tiles need internet; without it the game auto-falls back to the built-in schematic map.
+- Map tiles: © [OpenStreetMap](https://www.openstreetmap.org/copyright) contributors (Leaflet). Tiles need internet; without it the game falls back to the illustrated political map (needs `assets/world-map.jpg`).
 
 ## Balance / tuning
 All economy numbers live in `js/data.js` (prices, demand, fees) and `js/game.js` `forecast()` / `simulateDay()`. Start cash by difficulty in `newGame()`.
