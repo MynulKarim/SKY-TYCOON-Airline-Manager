@@ -135,10 +135,14 @@ input,select{background:#0d2246; border:1px solid #ffffff2a; color:var(--ink); b
 #worldmap-wrap{position:relative; background:linear-gradient(180deg,#12315f,#0b1e3b); border-radius:14px; overflow:hidden; border:1px solid #ffffff22}
 #worldmap-wrap.hidden{display:none}
 /* Illustrated fallback map (political world map image + marker overlay) */
-#static-map{position:relative; border-radius:14px; overflow:hidden; border:1px solid #ffffff22; background:#0e2a55}
-#static-map-img{display:block; width:100%; height:auto}
+#static-map{position:relative; border-radius:14px; overflow:hidden; border:1px solid #ffffff22; background:#0e2a55; touch-action:none; cursor:grab}
+#static-map.grabbing{cursor:grabbing}
+#static-viewport{position:relative; width:100%; transform-origin:0 0; will-change:transform}
+#static-map-img{display:block; width:100%; height:auto; user-select:none; -webkit-user-drag:none}
 #static-map-img.hidden{display:none}
-#static-map-missing{padding:28px 16px; text-align:center; color:var(--muted); font-size:14px; line-height:1.8}
+#static-map-missing{position:absolute; inset:0; display:grid; place-items:center; text-align:center; color:var(--muted); font-size:14px; line-height:1.8; background:#0e2a55; z-index:2}
+.static-zoomctl{position:absolute; right:10px; bottom:10px; display:flex; flex-direction:column; gap:6px; z-index:3}
+.static-zoomctl .btn{width:44px; height:44px; min-height:44px; padding:0; font-size:20px; line-height:1; background:rgba(13,34,70,.93)}
 #worldmap{position:absolute; inset:0; width:100%; height:100%; display:block}
 #worldmap text{paint-order:stroke; stroke:#0b1e3b; stroke-width:3px}
 #worldmap .ap{cursor:pointer}

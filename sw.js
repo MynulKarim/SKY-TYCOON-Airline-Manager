@@ -1,6 +1,6 @@
 /* Offline-first service worker — keeps the game playable as an installed mobile PWA. */
-const CACHE = "sky-tycoon-v1";
-const ASSETS = ["./", "./index.html", "./css/style.css", "./js/data.js", "./js/game.js", "./js/ui.js", "./manifest.webmanifest"];
+const CACHE = "sky-tycoon-v2";
+const ASSETS = ["./", "./index.html", "./css/style.css", "./js/data.js", "./js/game.js", "./js/ui.js", "./manifest.webmanifest", "./assets/icon.svg", "./assets/world-map.jpg"];
 self.addEventListener("install", (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll(ASSETS)).then(() => self.skipWaiting()));
 });

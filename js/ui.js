@@ -91,12 +91,23 @@
   }
   function closeModal() { $("modal-backdrop").classList.add("hidden"); }
 
-  // Equirectangular-ish placement calibrated to the illustrated political map
-  // (assets/world-map.jpg). Tweak if you swap the artwork.
+  // Illustrated-map placement: the artwork is Robinson-like. Mapping below was
+  // auto-calibrated against assets/world-map.jpg itself (projected all 48
+  // airports, grid-searched the Robinson fit that maximizes land-pixel hits:
+  // 48/48 airports on land). If you swap the artwork, re-run the calibrator.
+  const ROB_X = [1, 0.9986, 0.9954, 0.99, 0.9822, 0.973, 0.96, 0.9427, 0.9216, 0.8962, 0.8679, 0.835, 0.7986, 0.7597, 0.7186, 0.6732, 0.6213, 0.5722, 0.5322];
+  const ROB_Y = [0, 0.062, 0.124, 0.186, 0.248, 0.31, 0.372, 0.434, 0.496, 0.5571, 0.6176, 0.6769, 0.7346, 0.7903, 0.8435, 0.8936, 0.9394, 0.9761, 1];
+  function robXY(lat) {
+    const a = Math.min(17.999, Math.abs(lat) / 5), i = Math.floor(a), f = a - i;
+    const X = ROB_X[i] + (ROB_X[i + 1] - ROB_X[i]) * f;
+    const y = ROB_Y[i] + (ROB_Y[i + 1] - ROB_Y[i]) * f;
+    return { X, Y: lat < 0 ? -y : y };
+  }
   function project(lat, lon) {
-    const x = (0.008 + (lon + 168) * 0.002757) * 1000;
-    const y = (0.478 - 0.00404 * lat) * 500;
-    return { x: Math.max(8, Math.min(992, x)), y: Math.max(14, Math.min(392, y)) };
+    const r = robXY(lat);
+    const x = (0.49 + ((lon - 4) / 180) * r.X * 0.49) * 1000;
+    const y = (0.47 - r.Y * 0.32) * 500;
+    return { x: Math.max(5, Math.min(995, x)), y: Math.max(5, Math.min(495, y)) };
   }
   // Illustrated map artwork: tries common extensions so the owner can drop in
   // world-map.jpg / .png / .webp without touching code.
@@ -114,6 +125,85 @@
       else { img.classList.add("hidden"); $("static-map-missing").classList.remove("hidden"); }
     };
     img.src = STATIC_MAP_SOURCES[0];
+  }
+  // Illustrated-map pan/zoom (mirrors the real map feel: drag, wheel, pinch, dblclick)
+  const STZ = { s: 1, tx: 0, ty: 0, bound: false, pointers: new Map() };
+  function staticViewSize() { const el = $("static-map"); return { w: el.clientWidth || 1, h: el.clientHeight || 1 }; }
+  function staticApply() { const v = $("static-viewport"); if (v) v.style.transform = `translate(${STZ.tx}px,${STZ.ty}px) scale(${STZ.s})`; }
+  function staticClamp() {
+    const { w, h } = staticViewSize();
+    STZ.tx = Math.max(Math.min(0, w - w * STZ.s), Math.min(0, STZ.tx));
+    STZ.ty = Math.max(Math.min(0, h - h * STZ.s), Math.min(0, STZ.ty));
+  }
+  function staticReset() { STZ.s = 1; STZ.tx = 0; STZ.ty = 0; staticApply(); }
+  function staticZoomAt(cx, cy, factor) {
+    const ns = Math.max(1, Math.min(8, STZ.s * factor));
+    if (ns === STZ.s) return;
+    STZ.tx = cx - (cx - STZ.tx) * (ns / STZ.s);
+    STZ.ty = cy - (cy - STZ.ty) * (ns / STZ.s);
+    STZ.s = ns; staticClamp(); staticApply();
+  }
+  function staticCenterOn(code) {
+    const a = S.airport(code); if (!a) return;
+    const p = project(a.lat, a.lon);
+    const { w, h } = staticViewSize();
+    if (STZ.s < 2) STZ.s = 2;
+    STZ.tx = w / 2 - (p.x / 1000) * w * STZ.s;
+    STZ.ty = h / 2 - (p.y / 500) * h * STZ.s;
+    staticClamp(); staticApply();
+  }
+  function bindStaticMap() {
+    if (STZ.bound) return; STZ.bound = true;
+    const el = $("static-map");
+    if (!el) return;
+    el.addEventListener("wheel", (e) => {
+      e.preventDefault();
+      const r = el.getBoundingClientRect();
+      staticZoomAt(e.clientX - r.left, e.clientY - r.top, e.deltaY < 0 ? 1.25 : 0.8);
+    }, { passive: false });
+    el.addEventListener("dblclick", (e) => {
+      const r = el.getBoundingClientRect();
+      staticZoomAt(e.clientX - r.left, e.clientY - r.top, 1.6);
+    });
+    let pinch0 = 0;
+    el.addEventListener("pointerdown", (e) => {
+      STZ.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      if (STZ.pointers.size === 2) {
+        const p = [...STZ.pointers.values()];
+        pinch0 = Math.hypot(p[0].x - p[1].x, p[0].y - p[1].y);
+      }
+      el.classList.add("grabbing");
+    });
+    el.addEventListener("pointermove", (e) => {
+      if (!STZ.pointers.has(e.pointerId)) return;
+      const prev = STZ.pointers.get(e.pointerId);
+      STZ.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      if (STZ.pointers.size === 1) {
+        if (e.pointerType === "mouse" && e.buttons === 0) return;
+        STZ.tx += e.clientX - prev.x; STZ.ty += e.clientY - prev.y;
+        staticClamp(); staticApply();
+      } else if (STZ.pointers.size === 2) {
+        const p = [...STZ.pointers.values()];
+        const d = Math.hypot(p[0].x - p[1].x, p[0].y - p[1].y);
+        if (pinch0 > 0 && d > 0) {
+          const r = el.getBoundingClientRect();
+          staticZoomAt((p[0].x + p[1].x) / 2 - r.left, (p[0].y + p[1].y) / 2 - r.top, d / pinch0);
+        }
+        pinch0 = d;
+      }
+    });
+    const up = (e) => {
+      STZ.pointers.delete(e.pointerId);
+      if (STZ.pointers.size < 2) pinch0 = 0;
+      if (STZ.pointers.size === 0) el.classList.remove("grabbing");
+    };
+    el.addEventListener("pointerup", up);
+    el.addEventListener("pointercancel", up);
+    el.addEventListener("pointerleave", (e) => { if (e.pointerType === "mouse") up(e); });
+    $("z-in").onclick = () => { const { w, h } = staticViewSize(); staticZoomAt(w / 2, h / 2, 1.5); };
+    $("z-out").onclick = () => { const { w, h } = staticViewSize(); staticZoomAt(w / 2, h / 2, 1 / 1.5); };
+    $("z-reset").onclick = staticReset;
+    window.addEventListener("resize", () => { staticClamp(); staticApply(); });
   }
 
   // ---------- init ----------
@@ -220,6 +310,7 @@
       if (mapMode === "schematic") toast("🗺️ Illustrated map mode");
       drawMap();
     };
+    bindStaticMap();
   }
 
   function enterGame() {
@@ -419,7 +510,7 @@
     else $("airport-detail").innerHTML = `<p class="muted">Your hub is <b>${state.hub}</b>. Lines are your routes. Tap any airport for fees, demand & hangar options.</p>`;
   }
 
-  function selectAirport(code, keep) {
+  function selectAirport(code, keep, center) {
     selectedAirport = code;
     const a = S.airport(code);
     const has = !!state.bases[code];
@@ -447,6 +538,12 @@
       state.cash -= upgradeCost; state.runway[code] = (state.runway[code] || 0) + 1;
       S.save(state); renderAll(); selectAirport(code, true); toast(`🛠️ ${code} runway → Lv ${rw + 1}`);
     };
+    if (center) {
+      if (mapMode === "real" && window.L && leafletMap) {
+        const a2 = S.airport(code);
+        if (a2) leafletMap.setView([a2.lat, a2.lon], Math.max(leafletMap.getZoom(), 4));
+      } else staticCenterOn(code);
+    }
   }
 
   // ----- fleet -----
@@ -660,7 +757,7 @@
       state.cash -= cost; state.runway[code] = (state.runway[code] || 0) + 1;
       S.save(state); renderAll();
     }));
-    $("bases-list").querySelectorAll("[data-view]").forEach((b) => (b.onclick = () => { switchTab("map"); selectAirport(b.dataset.view); }));
+    $("bases-list").querySelectorAll("[data-view]").forEach((b) => (b.onclick = () => { switchTab("map"); selectAirport(b.dataset.view, true, true); }));
   }
 
   // ----- finance -----

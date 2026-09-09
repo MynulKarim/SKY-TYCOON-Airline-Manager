@@ -160,9 +160,16 @@
               <div id="leaflet-map"></div>
               <div id="worldmap-wrap">
                 <div id="static-map">
-                  <img id="static-map-img" alt="Illustrated political world map" />
+                  <div id="static-viewport">
+                    <img id="static-map-img" alt="Illustrated political world map" />
+                    <svg id="worldmap" viewBox="0 0 1000 500" preserveAspectRatio="none"></svg>
+                  </div>
                   <div id="static-map-missing" class="hidden">🗺️ Illustrated map file not found.<br>Save the world map image as <b>assets/world-map.jpg</b> (or .png/.webp) to enable it.</div>
-                  <svg id="worldmap" viewBox="0 0 1000 500" preserveAspectRatio="none"></svg>
+                  <div class="static-zoomctl">
+                    <button id="z-in" class="btn icon-only" aria-label="Zoom in">＋</button>
+                    <button id="z-out" class="btn icon-only" aria-label="Zoom out">－</button>
+                    <button id="z-reset" class="btn icon-only" aria-label="Reset view">⤾</button>
+                  </div>
                 </div>
                 <div id="map-tooltip" class="hidden"></div>
               </div>
