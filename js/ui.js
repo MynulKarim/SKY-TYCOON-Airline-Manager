@@ -467,7 +467,10 @@
         const btn = document.querySelector(`[data-pop="${ap.code}"]`);
         if (btn) btn.onclick = () => { selectAirport(ap.code); leafletMap.closePopup(); $("airport-detail").scrollIntoView({ behavior: "smooth", block: "nearest" }); };
       });
-      m.on("click", () => selectAirport(ap.code));
+      m.on("click", () => {
+        selectAirport(ap.code);
+        $("airport-detail").scrollIntoView({ behavior: "smooth", block: "nearest" });
+      });
     }
     if (selectedAirport) {
       const a = S.airport(selectedAirport);
@@ -504,7 +507,10 @@
     html += `<text x="${hubP.x + 16}" y="${hubP.y + 8}" font-size="26">✈️</text>`;
     svg.innerHTML = html;
     svg.querySelectorAll(".ap").forEach((g) => {
-      g.addEventListener("click", () => selectAirport(g.dataset.code));
+      g.addEventListener("click", () => {
+        selectAirport(g.dataset.code);
+        $("airport-detail").scrollIntoView({ behavior: "smooth", block: "nearest" });
+      });
     });
     if (selectedAirport) selectAirport(selectedAirport, true);
     else $("airport-detail").innerHTML = `<p class="muted">Your hub is <b>${state.hub}</b>. Lines are your routes. Tap any airport for fees, demand & hangar options.</p>`;
@@ -543,6 +549,7 @@
         const a2 = S.airport(code);
         if (a2) leafletMap.setView([a2.lat, a2.lon], Math.max(leafletMap.getZoom(), 4));
       } else staticCenterOn(code);
+      $("airport-detail").scrollIntoView({ behavior: "smooth", block: "nearest" });
     }
   }
 
